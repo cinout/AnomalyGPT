@@ -3,14 +3,15 @@
 # compilation and distribution
 __pycache__
 _ext
-*.pyc
 *.pyd
 *.so
 *.dll
 *.egg-info/
 *.png
 *.jpg
+*.pyc
 *.t
+*.pt
 build/
 dist/
 wheels/

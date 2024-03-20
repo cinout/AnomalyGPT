@@ -11,27 +11,29 @@ from torchvision import transforms
 
 # init the model
 args = {
-    'model': 'openllama_peft',
-    'imagebind_ckpt_path': '../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth',
-    'vicuna_ckpt_path': '../pretrained_ckpt/vicuna_ckpt/7b_v0',
-    'anomalygpt_ckpt_path': './ckpt/train_supervised/pytorch_model.pt',
-    'delta_ckpt_path': '../pretrained_ckpt/pandagpt_ckpt/7b/pytorch_model.pt',
-    'stage': 2,
-    'max_tgt_len': 128,
-    'lora_r': 32,
-    'lora_alpha': 32,
-    'lora_dropout': 0.1
+    "model": "openllama_peft",
+    "imagebind_ckpt_path": "../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth",
+    "vicuna_ckpt_path": "../pretrained_ckpt/vicuna_ckpt/7b_v0",
+    "anomalygpt_ckpt_path": "./ckpt/train_supervised/pytorch_model.pt",
+    "delta_ckpt_path": "../pretrained_ckpt/pandagpt_ckpt/7b/pytorch_model.pt",
+    "stage": 2,
+    "max_tgt_len": 128,
+    "lora_r": 32,
+    "lora_alpha": 32,
+    "lora_dropout": 0.1,
 }
 
 model = OpenLLAMAPEFTModel(**args)
-delta_ckpt = torch.load(args['delta_ckpt_path'], map_location=torch.device('cpu'))
+delta_ckpt = torch.load(args["delta_ckpt_path"], map_location=torch.device("cpu"))
 model.load_state_dict(delta_ckpt, strict=False)
-delta_ckpt = torch.load(args['anomalygpt_ckpt_path'], map_location=torch.device('cpu'))
+delta_ckpt = torch.load(args["anomalygpt_ckpt_path"], map_location=torch.device("cpu"))
 model.load_state_dict(delta_ckpt, strict=False)
 model = model.eval().half().cuda()
 
 
 """Override Chatbot.postprocess"""
+
+
 def postprocess(self, y):
     if y is None:
         return []
@@ -54,11 +56,11 @@ def parse_text(text):
     for i, line in enumerate(lines):
         if "```" in line:
             count += 1
-            items = line.split('`')
+            items = line.split("`")
             if count % 2 == 1:
                 lines[i] = f'<pre><code class="language-{items[-1]}">'
             else:
-                lines[i] = f'<br></code></pre>'
+                lines[i] = f"<br></code></pre>"
         else:
             if i > 0:
                 if count % 2 == 1:
@@ -74,59 +76,70 @@ def parse_text(text):
                     line = line.replace("(", "&#40;")
                     line = line.replace(")", "&#41;")
                     line = line.replace("$", "&#36;")
-                lines[i] = "<br>"+line
+                lines[i] = "<br>" + line
     text = "".join(lines)
     return text
 
 
 def predict(
-    input, 
-    image_path, 
-    normal_img_path,  
-    chatbot, 
-    max_length, 
-    top_p, 
-    temperature, 
-    history, 
-    modality_cache, 
+    input,
+    image_path,
+    normal_img_path,
+    chatbot,
+    max_length,
+    top_p,
+    temperature,
+    history,
+    modality_cache,
 ):
-    
+
     if image_path is None and normal_img_path is None:
-        return [(input, "There is no input data provided! Please upload your data and start the conversation.")]
+        return [
+            (
+                input,
+                "There is no input data provided! Please upload your data and start the conversation.",
+            )
+        ]
     else:
-        print(f'[!] image path: {image_path}\n[!] normal image path: {normal_img_path}\n')
+        print(
+            f"[!] image path: {image_path}\n[!] normal image path: {normal_img_path}\n"
+        )
 
     # prepare the prompt
-    prompt_text = ''
+    prompt_text = ""
     for idx, (q, a) in enumerate(history):
         if idx == 0:
-            prompt_text += f'{q}\n### Assistant: {a}\n###'
+            prompt_text += f"{q}\n### Assistant: {a}\n###"
         else:
-            prompt_text += f' Human: {q}\n### Assistant: {a}\n###'
+            prompt_text += f" Human: {q}\n### Assistant: {a}\n###"
     if len(history) == 0:
-        prompt_text += f'{input}'
+        prompt_text += f"{input}"
     else:
-        prompt_text += f' Human: {input}'
+        prompt_text += f" Human: {input}"
 
-    response, pixel_output = model.generate({
-        'prompt': prompt_text,
-        'image_paths': [image_path] if image_path else [],
-        'normal_img_paths': [normal_img_path] if normal_img_path else [],
-        'audio_paths': [],
-        'video_paths': [],
-        'thermal_paths': [],
-        'top_p': top_p,
-        'temperature': temperature,
-        'max_tgt_len': max_length,
-        'modality_embeds': modality_cache
-    },web_demo=True)
+    response, pixel_output = model.generate(
+        {
+            "prompt": prompt_text,
+            "image_paths": [image_path] if image_path else [],
+            "normal_img_paths": [normal_img_path] if normal_img_path else [],
+            "audio_paths": [],
+            "video_paths": [],
+            "thermal_paths": [],
+            "top_p": top_p,
+            "temperature": temperature,
+            "max_tgt_len": max_length,
+            "modality_embeds": modality_cache,
+        },
+        web_demo=True,
+    )
     chatbot.append((parse_text(input), parse_text(response)))
     history.append((input, response))
 
-
-    plt.imshow(pixel_output.to(torch.float16).reshape(224,224).detach().cpu(), cmap='binary_r')
-    plt.axis('off')
-    plt.savefig('output.png',bbox_inches='tight',pad_inches = 0)
+    plt.imshow(
+        pixel_output.to(torch.float16).reshape(224, 224).detach().cpu(), cmap="binary_r"
+    )
+    plt.axis("off")
+    plt.savefig("output.png", bbox_inches="tight", pad_inches=0)
 
     target_size = 224
     original_width, original_height = PILImage.open(image_path).size
@@ -137,36 +150,37 @@ def predict(
         new_height = target_size
         new_width = int(target_size * (original_width / original_height))
 
-    new_image = PILImage.new('L', (target_size, target_size), 255)  # 'L' mode for grayscale
+    new_image = PILImage.new(
+        "L", (target_size, target_size), 255
+    )  # 'L' mode for grayscale
 
     paste_x = (target_size - new_width) // 2
     paste_y = (target_size - new_height) // 2
 
-    pixel_output = PILImage.open('output.png').resize((new_width, new_height), PILImage.LANCZOS)
+    pixel_output = PILImage.open("output.png").resize(
+        (new_width, new_height), PILImage.LANCZOS
+    )
 
     new_image.paste(pixel_output, (paste_x, paste_y))
 
-    new_image.save('output.png')
+    new_image.save("output.png")
 
-    image = cv2.imread('output.png', cv2.IMREAD_GRAYSCALE)
+    image = cv2.imread("output.png", cv2.IMREAD_GRAYSCALE)
     kernel = np.ones((3, 3), np.uint8)
     eroded_image = cv2.erode(image, kernel, iterations=1)
-    cv2.imwrite('output.png', eroded_image)
+    cv2.imwrite("output.png", eroded_image)
 
-    output =  PILImage.open('output.png').convert('L')
-
+    output = PILImage.open("output.png").convert("L")
 
     return chatbot, history, modality_cache, output
 
 
-
 def reset_user_input():
-    return gr.update(value='')
+    return gr.update(value="")
 
 
 def reset_state():
-    return gr.update(value=''), None, None, [], [], [], PILImage.open('ffffff.png')
-
+    return gr.update(value=""), None, None, [], [], [], PILImage.open("ffffff.png")
 
 
 with gr.Blocks() as demo:
@@ -177,14 +191,26 @@ with gr.Blocks() as demo:
             with gr.Row(scale=3):
                 image_path = gr.Image(type="filepath", label="Query Image", value=None)
             with gr.Row(scale=3):
-                normal_img_path = gr.Image(type="filepath", label="Normal Image (optional)", value=None)
+                normal_img_path = gr.Image(
+                    type="filepath", label="Normal Image (optional)", value=None
+                )
             with gr.Row():
-                max_length = gr.Slider(0, 512, value=512, step=1.0, label="Maximum length", interactive=True)
+                max_length = gr.Slider(
+                    0,
+                    512,
+                    value=512,
+                    step=1.0,
+                    label="Maximum length",
+                    interactive=True,
+                )
             with gr.Row():
-                top_p = gr.Slider(0, 1, value=0.01, step=0.01, label="Top P", interactive=True)
+                top_p = gr.Slider(
+                    0, 1, value=0.01, step=0.01, label="Top P", interactive=True
+                )
             with gr.Row():
-                temperature = gr.Slider(0, 1, value=1.0, step=0.01, label="Temperature", interactive=True)
-
+                temperature = gr.Slider(
+                    0, 1, value=1.0, step=0.01, label="Temperature", interactive=True
+                )
 
         with gr.Column(scale=3):
             with gr.Row():
@@ -192,48 +218,58 @@ with gr.Blocks() as demo:
                     chatbot = gr.Chatbot().style(height=415)
                 with gr.Column(scale=4):
                     # gr.Image(output)
-                    image_output = gr.Image(interactive=False, label="Localization Output", every=1.0, shape=[224,224], type='pil',value=PILImage.open('ffffff.png'))
+                    image_output = gr.Image(
+                        interactive=False,
+                        label="Localization Output",
+                        every=1.0,
+                        shape=[224, 224],
+                        type="pil",
+                        value=PILImage.open("ffffff.png"),
+                    )
             with gr.Row():
-                user_input = gr.Textbox(show_label=False, placeholder="Input...", lines=10).style(container=False)
+                user_input = gr.Textbox(
+                    show_label=False, placeholder="Input...", lines=10
+                ).style(container=False)
             with gr.Row():
                 with gr.Column(scale=2):
                     submitBtn = gr.Button("Submit", variant="primary")
                 with gr.Column(scale=1):
                     emptyBtn = gr.Button("Clear History")
-                    
+
     history = gr.State([])
     modality_cache = gr.State([])
 
     submitBtn.click(
-        predict, [
-            user_input, 
-            image_path, 
-            normal_img_path, 
-            chatbot, 
-            max_length, 
-            top_p, 
-            temperature, 
-            history, 
-            modality_cache,
-        ], [
-            chatbot, 
+        predict,
+        [
+            user_input,
+            image_path,
+            normal_img_path,
+            chatbot,
+            max_length,
+            top_p,
+            temperature,
             history,
             modality_cache,
-            image_output
         ],
-        show_progress=True
+        [chatbot, history, modality_cache, image_output],
+        show_progress=True,
     )
 
     submitBtn.click(reset_user_input, [], [user_input])
-    emptyBtn.click(reset_state, outputs=[
-        user_input,
-        image_path,
-        normal_img_path,
-        chatbot, 
-        history, 
-        modality_cache,
-        image_output
-    ], show_progress=True)
+    emptyBtn.click(
+        reset_state,
+        outputs=[
+            user_input,
+            image_path,
+            normal_img_path,
+            chatbot,
+            history,
+            modality_cache,
+            image_output,
+        ],
+        show_progress=True,
+    )
 
 
 demo.queue().launch()
