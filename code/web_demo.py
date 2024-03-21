@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from torchvision import transforms
 
-# init the model
+# TODO: model is initiated
 args = {
     "model": "openllama_peft",
     "imagebind_ckpt_path": "../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth",
@@ -24,6 +24,7 @@ args = {
 }
 
 model = OpenLLAMAPEFTModel(**args)
+# TODO: why model loads twice? Maybe load for different parts of the model?
 delta_ckpt = torch.load(args["delta_ckpt_path"], map_location=torch.device("cpu"))
 model.load_state_dict(delta_ckpt, strict=False)
 delta_ckpt = torch.load(args["anomalygpt_ckpt_path"], map_location=torch.device("cpu"))
@@ -81,6 +82,7 @@ def parse_text(text):
     return text
 
 
+# TODO: the main function for prediction
 def predict(
     input,
     image_path,
@@ -92,7 +94,6 @@ def predict(
     history,
     modality_cache,
 ):
-
     if image_path is None and normal_img_path is None:
         return [
             (
@@ -117,6 +118,7 @@ def predict(
     else:
         prompt_text += f" Human: {input}"
 
+    # TODO: where model generates response
     response, pixel_output = model.generate(
         {
             "prompt": prompt_text,
