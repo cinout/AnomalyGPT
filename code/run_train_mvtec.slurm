@@ -14,8 +14,8 @@
 #SBATCH --time=0-02:00:00
 
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --gres=gpu:1
+#SBATCH --ntasks-per-node=2
+#SBATCH --gres=gpu:2
 
 ### "ntasks-per-node" should have same value as "res=gpu:"
 
