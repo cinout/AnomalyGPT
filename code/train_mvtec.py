@@ -65,11 +65,17 @@ def build_directory(path):
 
 
 def main(**args):
+    """
+    CONFIGs
+    """
     config_env(args)
     args["ds_config_path"] = f'dsconfig/{args["model"]}_stage_{args["stage"]}.json'
     dschf = HfDeepSpeedConfig(args["ds_config_path"])
     args["dschf"] = dschf
 
+    """
+    Create Directories
+    """
     build_directory(args["save_path"])
     build_directory(args["log_path"])
 
