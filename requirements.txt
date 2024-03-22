@@ -29,6 +29,10 @@ sentencepiece
 
 # ~/.conda/envs/anogpt/bin/pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 --trusted-host download.pytorch.org
 
+
+# THE ERROR: https://github.com/CASIA-IVA-Lab/AnomalyGPT/issues/43
+# 我后来发现是内存不够
+
 # [ANS] 可能是在合并 LLAMA 和 Vicuna 权重的时候出现了问题，也可能是在组合 Vicuna 权重和 PandaGPT 的权重的过程中出现了问题；请首先确认合并后的 Vicuna 拥有正常的 LLM 能力，然后确认合并后的 PandaGPT 拥有正常的多模态对话能力，最后再确认合并 AnomalyGPT 的参数后模型拥有异常检测能力。
 
 # vicuna7B的delta权重模型一定要用V0版本的么？高于V0版本，1.1或者1.5行不行？V0版本训练词表的维度和llama词表的维度不一致，V0版本词表是32001，而llama词表是32000，因此对输入embedding编码的参数维度不一致.
