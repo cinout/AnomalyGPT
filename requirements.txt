@@ -28,3 +28,11 @@ transformers==4.29.1
 sentencepiece
 
 # ~/.conda/envs/anogpt/bin/pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 --trusted-host download.pytorch.org
+
+# [ANS] 可能是在合并 LLAMA 和 Vicuna 权重的时候出现了问题，也可能是在组合 Vicuna 权重和 PandaGPT 的权重的过程中出现了问题；请首先确认合并后的 Vicuna 拥有正常的 LLM 能力，然后确认合并后的 PandaGPT 拥有正常的多模态对话能力，最后再确认合并 AnomalyGPT 的参数后模型拥有异常检测能力。
+
+# vicuna7B的delta权重模型一定要用V0版本的么？高于V0版本，1.1或者1.5行不行？V0版本训练词表的维度和llama词表的维度不一致，V0版本词表是32001，而llama词表是32000，因此对输入embedding编码的参数维度不一致.
+
+# 不是很理解为啥微调mvtec数据的时候还需要同时训练pandagpt4_visual_instruction_data. pandagpt4_visual_instruction_data不是用来训练pandagpt4的么，这个模型应该只需要微调下游异常检测数据吧？为啥代码里面同时还训练pandagpt4_visual_instruction_data？[ANS] 这是为了防止微调的时候大模型发生灾难性遗忘，失去其在大规模预训练数据上获得的知识。只使用下游异常检测数据容易过拟合。
+
+# 用自己数据集微调的时候，需要将pandagpt4_visual_instruction_data.json和images放上去吗? [ANS] pandagpt的数据是用来数据平衡，防止过拟合下游数据集和灾难性遗忘的，建议放上去一起训练。如果不用pandagpt的数据，需要修改一下 train_xxx.py 里面数据读取部分的代码

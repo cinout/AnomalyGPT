@@ -13,7 +13,7 @@
 #SBATCH --account=punim1623
 #SBATCH --time=0-02:00:00
 
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --ntasks-per-node=2
 #SBATCH --gres=gpu:2
 
@@ -21,7 +21,7 @@
 
 #SBATCH --mem=80G
 
-export WORLD_SIZE=2   ### FIXME: update world size: nodes x ntasks-per-node
+export WORLD_SIZE=4   ### FIXME: update world size: nodes x ntasks-per-node
 export MASTER_PORT=28400
 echo ">>> NODELIST="${SLURM_NODELIST}
 master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
