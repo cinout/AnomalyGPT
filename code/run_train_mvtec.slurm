@@ -2,12 +2,12 @@
 
 ###SBATCH --partition=gpu-a100
 
-###SBATCH --partition=feit-gpu-a100
-###SBATCH --qos=feit
+#SBATCH --partition=feit-gpu-a100
+#SBATCH --qos=feit
 
-#SBATCH --partition=deeplearn
-#SBATCH --qos=gpgpudeeplearn
-#SBATCH --constraint=dlg3|dlg4|dlg5
+###SBATCH --partition=deeplearn
+###SBATCH --qos=gpgpudeeplearn
+###SBATCH --constraint=dlg3|dlg4|dlg5
 
 #SBATCH --job-name="train"
 #SBATCH --account=punim1623
@@ -19,7 +19,7 @@
 
 ### "ntasks-per-node" should have same value as "res=gpu:"
 
-#SBATCH --mem=60G
+#SBATCH --mem=80G
 
 export WORLD_SIZE=2   ### FIXME: update world size: nodes x ntasks-per-node
 export MASTER_PORT=28400

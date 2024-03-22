@@ -6,11 +6,16 @@ from config import *
 
 def parser_args():
     parser = argparse.ArgumentParser(description="train parameters")
+
     parser.add_argument("--model", type=str)
     parser.add_argument("--local_rank", default=0, type=int)
-    parser.add_argument("--save_path", type=str)
-    parser.add_argument("--log_path", type=str)
-    # model configurations
+    parser.add_argument(
+        "--save_path", type=str
+    )  # The directory which saves the trained delta weights. This directory will be automatically created.
+    parser.add_argument(
+        "--log_path", type=str
+    )  # The directory which saves the log. This directory will be automatically created.
+
     parser.add_argument(
         "--imagebind_ckpt_path", type=str
     )  # the path that stores the imagebind checkpoint
@@ -20,10 +25,15 @@ def parser_args():
     parser.add_argument(
         "--delta_ckpt_path", type=str
     )  # the delta parameters trained in stage 1
+
     parser.add_argument("--max_tgt_len", type=int)  # the maximum sequence length
     parser.add_argument("--stage", type=int)  # the maximum sequence length
-    parser.add_argument("--data_path", type=str)  # the maximum sequence length
-    parser.add_argument("--image_root_path", type=str)  # the maximum sequence length
+    parser.add_argument(
+        "--data_path", type=str
+    )  # The data path for the json file pandagpt4_visual_instruction_data.json
+    parser.add_argument(
+        "--image_root_path", type=str
+    )  # The root path for training images of PandaGPT
 
     return parser.parse_args()
 
@@ -100,6 +110,7 @@ def main(**args):
         2 * args["epochs"] * len(train_data) // dschf.config["train_batch_size"]
     )
     args["total_steps"] = total_steps
+    # TODO: understand how load_model() works
     agent = load_model(args)
     torch.distributed.barrier()
 
@@ -110,6 +121,7 @@ def main(**args):
         iter_every_epoch = 0
         for batch, batch_sft in zip(train_iter, train_iter_sft):
             iter_every_epoch += 1
+            # TODO: understand how it works
             agent.train_model(batch, current_step=current_step, pbar=pbar)
             del batch
 
