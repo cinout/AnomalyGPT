@@ -11,6 +11,7 @@ import kornia as K
 import torch
 from torch.nn.utils import rnn
 from peft import LoraConfig, TaskType, get_peft_model
+from transformers import LlamaTokenizer, LlamaForCausalLM
 
 CLASS_NAMES = [
     "bottle",
