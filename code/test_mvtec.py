@@ -79,7 +79,8 @@ args = {
     "delta_ckpt_path": "../pretrained_ckpt/pandagpt_ckpt/7b/pytorch_model.pt",
     "stage": 2,  # TODO: what is this?
     "max_tgt_len": 128,
-    "lora_r": 32,  # TODO: what are these?
+    "lora_r": 32,  # what are these?: https://medium.com/@manyi.yim/more-about-loraconfig-from-peft-581cf54643db
+    # https://huggingface.co/docs/peft/main/en/conceptual_guides/lora
     "lora_alpha": 32,
     "lora_dropout": 0.1,
 }
