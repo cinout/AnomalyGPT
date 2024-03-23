@@ -30,13 +30,39 @@ sentencepiece
 # ~/.conda/envs/anogpt/bin/pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 --trusted-host download.pytorch.org
 
 
-# THE ERROR: https://github.com/CASIA-IVA-Lab/AnomalyGPT/issues/43
-# 我后来发现是内存不够
 
-# [ANS] 可能是在合并 LLAMA 和 Vicuna 权重的时候出现了问题，也可能是在组合 Vicuna 权重和 PandaGPT 的权重的过程中出现了问题；请首先确认合并后的 Vicuna 拥有正常的 LLM 能力，然后确认合并后的 PandaGPT 拥有正常的多模态对话能力，最后再确认合并 AnomalyGPT 的参数后模型拥有异常检测能力。
+# [合并 LLAMA 和 Vicuna 权重] vicuna_ckpt (V0_7B) = LLaMA + delta weights of Vicuna provided by the original authors  
+# [Vicuna 拥有正常的 LLM 能力]
+# [存疑: Vicuna V0版本训练词表的维度和llama词表的维度不一致，V0版本词表是32001，而llama词表是32000，因此对输入embedding编码的参数维度不一致.]
 
-# vicuna7B的delta权重模型一定要用V0版本的么？高于V0版本，1.1或者1.5行不行？V0版本训练词表的维度和llama词表的维度不一致，V0版本词表是32001，而llama词表是32000，因此对输入embedding编码的参数维度不一致.
 
-# 不是很理解为啥微调mvtec数据的时候还需要同时训练pandagpt4_visual_instruction_data. pandagpt4_visual_instruction_data不是用来训练pandagpt4的么，这个模型应该只需要微调下游异常检测数据吧？为啥代码里面同时还训练pandagpt4_visual_instruction_data？[ANS] 这是为了防止微调的时候大模型发生灾难性遗忘，失去其在大规模预训练数据上获得的知识。只使用下游异常检测数据容易过拟合。
+# The image encoder is ImageBind (is text encoder also ImageBind???)
 
-# 用自己数据集微调的时候，需要将pandagpt4_visual_instruction_data.json和images放上去吗? [ANS] pandagpt的数据是用来数据平衡，防止过拟合下游数据集和灾难性遗忘的，建议放上去一起训练。如果不用pandagpt的数据，需要修改一下 train_xxx.py 里面数据读取部分的代码
+# [组合 Vicuna 权重和 PandaGPT 的权重] We use the pre-trained parameters from PandaGPT to initialize our AnomalyGPT. Our AnomalyGPT weights are also downloadable (I guess those are already trained??), put in the ./code/ckpt directory
+# [PandaGPT 拥有正常的多模态对话能力, 合并 AnomalyGPT 的参数后模型拥有异常检测能力]
+
+# --data_path: The data path for the json file pandagpt4_visual_instruction_data.json.
+# --image_root_path: The root path for training images of PandaGPT.
+# --imagebind_ckpt_path: The path of ImageBind checkpoint.
+# --vicuna_ckpt_path: The directory that saves the pre-trained Vicuna checkpoints.
+
+# [为啥微调mvtec数据的时候还需要同时训练 pandagpt4_visual_instruction_data.json 和images?] [ANS: pandagpt的数据是用来数据平衡，防止过拟合下游数据集和灾难性遗忘的，建议放上去一起训练。如果不用pandagpt的数据，需要修改一下 train_xxx.py 里面数据读取部分的代码]
+
+# [可以用预训练模型AnomalyGPT weights，继续finetune模型，在 agent.py 文件中加载现有的 AnomalyGPT 权重，然后训练 https://github.com/CASIA-IVA-Lab/AnomalyGPT/issues/48]
+
+# [label_mode: binary 和 logistic-intensity 的区别 在NSA文章里提及，用 gt>0.3 卡了一个模拟异常的阈值]
+# [模拟的异常数据是用来训练 image decoder 和 prompt learner 的]
+# [没有 mask 的是 pandagpt 原来的训练数据中的图像，这部分图像没有类别信息，所以统一使用 'object']
+# [unsupervised 设置指的是不使用真实异常样本，我们使用了训练集中的真实正常样本和合成的模拟异常样本。]
+# [Our current few-shot localizaiton result is based on the patch-level feature similarity between the query image and the normal image. Because there is no parameter training for the few-shot test samples, the localization result is not as accurate as the setting that has undergone unsupervised training.]
+
+# [Our "few-shot inference" entails conducting inference on a particular class of objects that have never been seen during the training phase, with only few normal samples provided as references, so we do not need few-shot training. In the experiments of our paper, we unsupervisedly train our model on the Visa dataset, and employ this trained model directly for performing few-shot inference on the MVTec dataset. Conversely, models trained unsupervisedly on the MVTec dataset are employed for few-shot inference on the VisA dataset. So if you want to test the few-shot inference effect of k=1,2,4 on the MVTec dataset, you can directly use the unsupervised training parameters on VisA dataset, and then set the value of "k_shot" in ./code/test_mvtec.py to experiment.]
+
+# [运行train_all_supervised_cn.sh: https://github.com/CASIA-IVA-Lab/AnomalyGPT/issues/4]
+# [train_all_supervised_cn.sh 训练得到的模型只用于我们的在线 demo 展示，论文中提到的数据结果都是在无监督训练设置下得到的。]
+# [test_mvtec.sh 默认是使用在 VisA 数据集中训练的参数进行 few-shot 测试，如果要测试 unsupervised 的性能，需要修改为在 mvtec 数据集中训练得到的参数，并将 FEW_SHOT 参数设置为 False.]
+
+# [我们的 LLM 和 prompt learner 也会回传梯度到 Image Decoder 中，用文本信息指导 Image Decoder 更新参数]
+# [是用了cross entropy文本的token对齐分类训练的prompt learner，用这个部分的损失去影响decoder部分]
+# [Few-shot 的方法中计算异常定位的部分确实是一个多层特征的 patchCore，我们参考了 APRIL-GAN 的设计，性能提升应该和多层级特征、backbone 等都有关系。但是我们同时把这些输出特征和大语言模型对齐了，从而大语言模型能对输入图像内容进行更丰富的描述和精确判断。]
+# 

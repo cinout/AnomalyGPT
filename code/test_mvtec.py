@@ -66,16 +66,19 @@ describles["zipper"] = (
 
 FEW_SHOT = command_args.few_shot
 
+# TODO: confirm if bool type works
+print(f">>> FEW_SHOT is {FEW_SHOT}")
+
 # init the model
 args = {
     "model": "openllama_peft",
     "imagebind_ckpt_path": "../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth",
     "vicuna_ckpt_path": "../pretrained_ckpt/vicuna_ckpt/7b_v0",
-    "anomalygpt_ckpt_path": "./ckpt/train_visa/pytorch_model.pt",
+    "anomalygpt_ckpt_path": "./ckpt/train_visa/pytorch_model.pt",  # TODO: update this for unsupervised
     "delta_ckpt_path": "../pretrained_ckpt/pandagpt_ckpt/7b/pytorch_model.pt",
-    "stage": 2,
+    "stage": 2,  # TODO: what is this?
     "max_tgt_len": 128,
-    "lora_r": 32,
+    "lora_r": 32,  # TODO: what are these?
     "lora_alpha": 32,
     "lora_dropout": 0.1,
 }
@@ -84,7 +87,7 @@ model = OpenLLAMAPEFTModel(**args)
 delta_ckpt = torch.load(args["delta_ckpt_path"], map_location=torch.device("cpu"))
 model.load_state_dict(delta_ckpt, strict=False)
 delta_ckpt = torch.load(args["anomalygpt_ckpt_path"], map_location=torch.device("cpu"))
-model.load_state_dict(delta_ckpt, strict=False)
+model.load_state_dict(delta_ckpt, strict=False)  # TODO: why load twice?
 model = model.eval().half().cuda()
 
 print(f"[!] init the 7b model over ...")
@@ -94,6 +97,7 @@ p_auc_list = []
 i_auc_list = []
 
 
+# TODO: understand this function
 def predict(
     input,
     image_path,
@@ -134,7 +138,7 @@ def predict(
 
 
 input = "Is there any anomaly in the image?"
-root_dir = "../data/mvtec_anomaly_detection"
+root_dir = "../data/mvtec_anomaly_detection"  # image folder
 
 mask_transform = transforms.Compose(
     [transforms.Resize((224, 224)), transforms.ToTensor()]
@@ -194,6 +198,7 @@ for c_name in CLASS_NAMES:
         for file in files:
             file_path = os.path.join(root, file)
             if "test" in file_path and "png" in file and c_name in file_path:
+                # TODO: this is where prediction happens
                 if FEW_SHOT:
                     resp, anomaly_map = predict(
                         describles[c_name] + " " + input,
@@ -226,7 +231,10 @@ for c_name in CLASS_NAMES:
                     img_mask = Image.open(mask_path).convert("L")
 
                 img_mask = mask_transform(img_mask)
-                img_mask[img_mask > 0.1], img_mask[img_mask <= 0.1] = 1, 0
+                img_mask[img_mask > 0.1], img_mask[img_mask <= 0.1] = (
+                    1,
+                    0,
+                )  # TODO: deciding threshold
                 img_mask = img_mask.squeeze().reshape(224, 224).cpu().numpy()
 
                 anomaly_map = anomaly_map.reshape(224, 224).detach().cpu().numpy()

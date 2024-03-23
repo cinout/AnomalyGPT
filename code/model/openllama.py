@@ -807,7 +807,7 @@ class OpenLLAMAPEFTModel(nn.Module):
 
             feats_text_tensor = encode_text_with_prompt_ensemble(
                 self.visual_encoder, ["object"] * len(image_paths), self.device
-            )
+            )  # 没有 mask 的是 pandagpt 原来的训练数据中的图像，这部分图像没有类别信息，所以统一使用 'object'
 
             anomaly_maps = []
             for layer in range(len(patch_tokens)):
