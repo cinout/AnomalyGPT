@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser("AnomalyGPT", add_help=True)
 parser.add_argument("--few_shot", type=bool, default=True)
 parser.add_argument("--k_shot", type=int, default=1)
 parser.add_argument("--round", type=int, default=3)
+parser.add_argument("--anomalygpt_ckpt_path", type=str)
 
 
 command_args = parser.parse_args()
@@ -74,7 +75,7 @@ args = {
     "model": "openllama_peft",
     "imagebind_ckpt_path": "../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth",
     "vicuna_ckpt_path": "../pretrained_ckpt/vicuna_ckpt/7b_v0",
-    "anomalygpt_ckpt_path": "./ckpt/train_visa/pytorch_model.pt",  # TODO: update this for unsupervised
+    "anomalygpt_ckpt_path": command_args.anomalygpt_ckpt_path,
     "delta_ckpt_path": "../pretrained_ckpt/pandagpt_ckpt/7b/pytorch_model.pt",
     "stage": 2,  # TODO: what is this?
     "max_tgt_len": 128,
@@ -165,6 +166,7 @@ CLASS_NAMES = [
 precision = []
 
 for c_name in CLASS_NAMES:
+    print(f">>> now testing class {c_name}")
     normal_img_paths = [
         "../data/mvtec_anomaly_detection/"
         + c_name

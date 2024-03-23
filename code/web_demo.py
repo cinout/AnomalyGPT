@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from torchvision import transforms
 
-# TODO: model is initiated
+# model is initiated
 args = {
     "model": "openllama_peft",
     "imagebind_ckpt_path": "../pretrained_ckpt/imagebind_ckpt/imagebind_huge.pth",
@@ -82,7 +82,7 @@ def parse_text(text):
     return text
 
 
-# TODO: the main function for prediction
+# the main function for prediction
 def predict(
     input,
     image_path,
