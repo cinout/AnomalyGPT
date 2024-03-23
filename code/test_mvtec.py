@@ -97,7 +97,6 @@ p_auc_list = []
 i_auc_list = []
 
 
-# TODO: understand this function
 def predict(
     input,
     image_path,
@@ -119,6 +118,7 @@ def predict(
     else:
         prompt_text += f" Human: {input}"
 
+    # TODO: understand how generate function works
     response, pixel_output = model.generate(
         {
             "prompt": prompt_text,
