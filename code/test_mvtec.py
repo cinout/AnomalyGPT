@@ -102,11 +102,11 @@ def predict(
     input,
     image_path,
     normal_img_path,
-    max_length,
-    top_p,
-    temperature,
-    history,
-    modality_cache,
+    max_length,  # 512
+    top_p,  # 0.1
+    temperature,  # 1.0
+    history,  # []
+    modality_cache,  # []
 ):
     prompt_text = ""
     for idx, (q, a) in enumerate(history):

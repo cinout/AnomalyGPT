@@ -28,7 +28,7 @@ conda activate anogpt
 
 # TODO: update options
 python test_mvtec.py \
-    --few_shot True \
+    --few_shot False \
     --k_shot 1 \
     --round 3 \
 
