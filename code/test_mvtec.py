@@ -9,7 +9,7 @@ import argparse
 
 parser = argparse.ArgumentParser("AnomalyGPT", add_help=True)
 # paths
-parser.add_argument("--few_shot", type=bool, default=True)
+parser.add_argument("--few_shot", action="store_true")
 parser.add_argument("--k_shot", type=int, default=1)
 parser.add_argument("--round", type=int, default=3)
 parser.add_argument("--anomalygpt_ckpt_path", type=str)
@@ -67,7 +67,7 @@ describles["zipper"] = (
 
 FEW_SHOT = command_args.few_shot
 
-# TODO: confirm if bool type works
+# FIXME: confirm if bool type works
 print(f">>> FEW_SHOT is {FEW_SHOT}")
 
 # init the model
@@ -201,7 +201,7 @@ for c_name in CLASS_NAMES:
         for file in files:
             file_path = os.path.join(root, file)
             if "test" in file_path and "png" in file and c_name in file_path:
-                # TODO: this is where prediction happens
+                # this is where prediction happens
                 if FEW_SHOT:
                     resp, anomaly_map = predict(
                         describles[c_name] + " " + input,

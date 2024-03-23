@@ -26,7 +26,7 @@ from .helpers import VerboseNNModule, cast_if_src_dtype
 def get_sinusoid_encoding_table(n_position, d_hid):
     """Sinusoid position encoding table"""
 
-    # [TODO from author] make it with torch instead of numpy
+    # [from author] make it with torch instead of numpy
     def get_position_angle_vec(position):
         return [
             position / np.power(10000, 2 * (hid_j // 2) / d_hid)
